@@ -9,9 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "next": "14.0.0",
+    "openai": "^4.71.0",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",
