@@ -6,13 +6,14 @@ export default function GameBoard({ boardSize, difficulty }) {
   const [board, setBoard] = useState(Array(boardSize * boardSize).fill(null));
   const [isXTurn, setIsXTurn] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [winner, setWinner] = useState(null); // Add state for winner
 
   // Function to check if there is a winner
-  const checkWinner = () => {
+  const checkWinner = (boardState) => {
     const lines = generateWinningLines(boardSize);
     for (let line of lines) {
-      if (line.every((index) => board[index] === 'X')) return 'X';
-      if (line.every((index) => board[index] === 'O')) return 'O';
+      if (line.every((index) => boardState[index] === 'X')) return 'X';
+      if (line.every((index) => boardState[index] === 'O')) return 'O';
     }
     return null;
   };
@@ -73,13 +74,13 @@ export default function GameBoard({ boardSize, difficulty }) {
       }
 
       const data = await response.json();
-      return data.move; // Expected format: { row: number, col: number }
+      return data.move;
     } catch (error) {
       console.error('Error getting AI move:', error);
-      // Fallback to random move if API fails
       const emptySquares = board.map((value, idx) => (value === null ? idx : null)).filter(idx => idx !== null);
       return {
-        index: emptySquares[Math.floor(Math.random() * emptySquares.length)]
+        row: Math.floor(emptySquares[0] / boardSize),
+        col: emptySquares[0] % boardSize
       };
     } finally {
       setLoading(false);
@@ -87,7 +88,7 @@ export default function GameBoard({ boardSize, difficulty }) {
   };
 
   const handleClick = async (index) => {
-    if (board[index] || checkWinner() || loading) return;
+    if (board[index] || winner || loading) return;
     
     const row = Math.floor(index / boardSize);
     const col = index % boardSize;
@@ -98,6 +99,13 @@ export default function GameBoard({ boardSize, difficulty }) {
     setBoard(newBoard);
     setIsXTurn(false);
 
+    // Check for winner after player's move
+    const playerWinner = checkWinner(newBoard);
+    if (playerWinner) {
+      setWinner(playerWinner);
+      return;
+    }
+
     // AI's move
     const aiMoveResult = await getAIMove({ row, col });
     const aiMoveIndex = aiMoveResult.row * boardSize + aiMoveResult.col;
@@ -106,16 +114,21 @@ export default function GameBoard({ boardSize, difficulty }) {
       newBoard[aiMoveIndex] = 'O';
       setBoard(newBoard);
       setIsXTurn(true);
+      
+      // Check for winner after AI's move
+      const aiWinner = checkWinner(newBoard);
+      if (aiWinner) {
+        setWinner(aiWinner);
+      }
     }
   };
 
-  const winner = checkWinner();
   const isTie = !winner && board.every((cell) => cell !== null);
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center p-6 animate-fade-in">
       <div
-        className="grid gap-2 relative"
+        className="grid gap-2 relative bg-accent-dark p-4 rounded-lg shadow-lg"
         style={{
           gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
           width: `${boardSize * 4}rem`,
@@ -123,29 +136,43 @@ export default function GameBoard({ boardSize, difficulty }) {
         }}
       >
         {loading && (
-          <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-500"></div>
+          <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm flex items-center justify-center rounded-lg">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
           </div>
         )}
         {board.map((value, index) => (
           <button
             key={index}
             onClick={() => handleClick(index)}
-            disabled={loading || !!winner || !!value}
+            disabled={loading || winner !== null || value !== null}
             className={`
-              flex items-center justify-center border-2 border-purple-500 text-2xl font-bold
-              ${value ? 'text-purple-700' : 'text-transparent'}
-              ${loading || winner || value ? 'cursor-not-allowed' : 'hover:bg-purple-50'}
-              bg-white transition-colors duration-200
+              game-cell
+              ${value ? 'text-primary' : 'text-transparent'}
+              ${loading || winner || value 
+                ? 'cursor-not-allowed opacity-75' 
+                : 'hover:bg-accent-darker'
+              }
             `}
-            style={{ width: '100%', height: '100%' }}
           >
             {value}
           </button>
         ))}
       </div>
-      {winner && <p className="text-xl font-bold mt-4">Winner: {winner}</p>}
-      {isTie && <p className="text-xl font-bold mt-4">It's a Tie!</p>}
+      
+      {(winner || isTie) && (
+        <div className="mt-8 text-center animate-slide-up">
+          {winner && (
+            <p className="text-2xl font-bold">
+              Winner: {winner}
+            </p>
+          )}
+          {isTie && (
+            <p className="text-2xl font-bold">
+              It's a Tie!
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }

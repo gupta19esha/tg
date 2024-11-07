@@ -10,6 +10,10 @@
   },
   "dependencies": {
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
+    "bcryptjs": "^2.4.3",
+    "cookie": "^1.0.1",
+    "jose": "^5.9.6",
+    "mongoose": "^8.8.0",
     "next": "14.0.0",
     "openai": "^4.71.0",
     "react": "^18",
