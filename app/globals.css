@@ -37,6 +37,8 @@
 
   .game-cell {
     @apply flex items-center justify-center border-2 border-primary text-2xl font-bold transition-colors duration-200;
+    aspect-ratio: 1 / 1;
+    transition: background-color 0.2s ease-in-out;
   }
 }
 
@@ -44,5 +46,14 @@
 @media (prefers-color-scheme: dark) {
   body {
     @apply bg-primary text-accent;
+  }
+}
+
+@keyframes drawLine {
+  from {
+    transform: scaleX(0) rotate(var(--rotation));
+  }
+  to {
+    transform: scaleX(1) rotate(var(--rotation));
   }
 }

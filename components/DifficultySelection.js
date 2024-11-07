@@ -1,12 +1,21 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function DifficultySelection() {
   const router = useRouter();
   const [boardSize, setBoardSize] = useState(3);
   const [difficulty, setDifficulty] = useState("Easy");
+
+  useEffect(() => {
+    // Check if user is authenticated (you'll need to adjust this based on your auth implementation)
+    const isAuthenticated = localStorage.getItem('token') || sessionStorage.getItem('token');
+    
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [router]);
 
   const startGame = () => {
     router.push(`/game?boardSize=${boardSize}&difficulty=${difficulty}`);
@@ -20,7 +29,7 @@ export default function DifficultySelection() {
             Tic-Tac-Toe
           </h1>
           <h2 className="text-xl text-secondary-dark">
-            Choose Your Challenge
+            Ready to Challenge Yourself?
           </h2>
         </div>
 

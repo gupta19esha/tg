@@ -2,6 +2,7 @@
 "use client";
 
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import GameBoard from '../../components/GameBoard';
 
 export default function GamePage() {
@@ -10,17 +11,13 @@ export default function GamePage() {
   const difficulty = searchParams.get('difficulty') || 'Easy';
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      {/* Welcome Header */}
-      <h1 className="text-4xl font-bold text-purple-700 mb-6">
-        🎉 Welcome to the Ultimate TIC TAC TOE GAME! 🎉
-      </h1>
-      
-      {/* Difficulty Level Display */}
-      <h2 className="text-2xl font-semibold text-gray-600 mb-4">
-        Difficulty: {difficulty}
-      </h2>
-      
+    <main className="flex min-h-screen flex-col items-center justify-center relative">
+      <Link 
+        href="/start-game" 
+        className="btn-secondary fixed top-[15%] left-4 z-10"
+      >
+        ← Back
+      </Link>
       {/* Game Board Component */}
       <GameBoard boardSize={boardSize} difficulty={difficulty} />
     </main>

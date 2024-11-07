@@ -23,6 +23,7 @@ module.exports = {
           DEFAULT: '#ffffff',
           dark: '#f5f5f5',
           darker: '#e5e5e5',
+          lighter: '#4a4a4a',
         }
       },
       fontFamily: {

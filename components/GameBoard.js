@@ -1,19 +1,27 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 export default function GameBoard({ boardSize, difficulty }) {
   const [board, setBoard] = useState(Array(boardSize * boardSize).fill(null));
   const [isXTurn, setIsXTurn] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [winner, setWinner] = useState(null); // Add state for winner
+  const [winner, setWinner] = useState(null);
+  const [winningCells, setWinningCells] = useState(null);
 
   // Function to check if there is a winner
   const checkWinner = (boardState) => {
     const lines = generateWinningLines(boardSize);
-    for (let line of lines) {
-      if (line.every((index) => boardState[index] === 'X')) return 'X';
-      if (line.every((index) => boardState[index] === 'O')) return 'O';
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line.every((index) => boardState[index] === 'X')) {
+        setWinningCells(line);
+        return 'X';
+      }
+      if (line.every((index) => boardState[index] === 'O')) {
+        setWinningCells(line);
+        return 'O';
+      }
     }
     return null;
   };
@@ -56,6 +64,8 @@ export default function GameBoard({ boardSize, difficulty }) {
   const getAIMove = async (lastPlayerMove) => {
     try {
       setLoading(true);
+      console.log('Getting AI move for board:', getBoardState());
+      
       const response = await fetch('/api/ai-move', {
         method: 'POST',
         headers: {
@@ -69,32 +79,56 @@ export default function GameBoard({ boardSize, difficulty }) {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get AI move');
+      const data = await response.json();
+      console.log('AI move response:', data);
+
+      if (!response.ok || !data.move) {
+        throw new Error(data.error || 'Failed to get AI move');
       }
 
-      const data = await response.json();
       return data.move;
     } catch (error) {
       console.error('Error getting AI move:', error);
-      const emptySquares = board.map((value, idx) => (value === null ? idx : null)).filter(idx => idx !== null);
-      return {
-        row: Math.floor(emptySquares[0] / boardSize),
-        col: emptySquares[0] % boardSize
+      // Get all empty squares
+      const emptySquares = [];
+      for (let i = 0; i < board.length; i++) {
+        if (board[i] === null) {
+          emptySquares.push(i);
+        }
+      }
+      
+      console.log('Empty squares available:', emptySquares);
+      
+      // If no empty squares, return null
+      if (emptySquares.length === 0) {
+        console.log('No empty squares available');
+        return null;
+      }
+      
+      // Pick a random empty square
+      const randomIndex = Math.floor(Math.random() * emptySquares.length);
+      const fallbackMove = {
+        row: Math.floor(emptySquares[randomIndex] / boardSize),
+        col: emptySquares[randomIndex] % boardSize
       };
+      
+      console.log('Using fallback move:', fallbackMove);
+      return fallbackMove;
     } finally {
       setLoading(false);
     }
   };
 
   const handleClick = async (index) => {
-    if (board[index] || winner || loading) return;
+    if (board[index] || winner || loading) {
+      return;
+    }
     
     const row = Math.floor(index / boardSize);
     const col = index % boardSize;
     
     // Player's move
-    const newBoard = board.slice();
+    const newBoard = [...board];
     newBoard[index] = 'X';
     setBoard(newBoard);
     setIsXTurn(false);
@@ -106,40 +140,71 @@ export default function GameBoard({ boardSize, difficulty }) {
       return;
     }
 
+    // Check for tie after player's move
+    if (newBoard.every((cell) => cell !== null)) {
+      setWinner('tie');
+      return;
+    }
+
     // AI's move
-    const aiMoveResult = await getAIMove({ row, col });
-    const aiMoveIndex = aiMoveResult.row * boardSize + aiMoveResult.col;
-    
-    if (newBoard[aiMoveIndex] === null) {
-      newBoard[aiMoveIndex] = 'O';
-      setBoard(newBoard);
-      setIsXTurn(true);
+    try {
+      const aiMoveResult = await getAIMove({ row, col });
       
-      // Check for winner after AI's move
-      const aiWinner = checkWinner(newBoard);
-      if (aiWinner) {
-        setWinner(aiWinner);
+      if (!aiMoveResult) {
+        setWinner('tie');
+        return;
+      }
+
+      const aiMoveIndex = aiMoveResult.row * boardSize + aiMoveResult.col;
+      
+      const finalBoard = [...newBoard];
+      if (finalBoard[aiMoveIndex] === null) {
+        finalBoard[aiMoveIndex] = 'O';
+        setBoard(finalBoard);
+        setIsXTurn(true);
+        
+        const aiWinner = checkWinner(finalBoard);
+        if (aiWinner) {
+          setWinner(aiWinner);
+          return;
+        }
+        
+        if (finalBoard.every((cell) => cell !== null)) {
+          setWinner('tie');
+        }
+      } else {
+        console.error('AI tried to move to occupied cell:', {
+          aiMoveIndex,
+          cellValue: finalBoard[aiMoveIndex],
+          board: finalBoard
+        });
+        if (finalBoard.every((cell) => cell !== null)) {
+          setWinner('tie');
+        }
+      }
+    } catch (error) {
+      console.error('Error during AI move:', error);
+      if (newBoard.every((cell) => cell !== null)) {
+        setWinner('tie');
       }
     }
   };
 
-  const isTie = !winner && board.every((cell) => cell !== null);
-
   return (
     <div className="flex flex-col items-center p-6 animate-fade-in">
+      <h2 className="text-2xl font-bold mb-8">
+        {loading ? "AI is thinking..." : (isXTurn ? "Your turn" : "AI's turn")}
+      </h2>
+      
       <div
         className="grid gap-2 relative bg-accent-dark p-4 rounded-lg shadow-lg"
         style={{
           gridTemplateColumns: `repeat(${boardSize}, minmax(0, 1fr))`,
-          width: `${boardSize * 4}rem`,
-          height: `${boardSize * 4}rem`
+          width: 'min(90vw, 400px)',
+          height: 'min(90vw, 400px)',
+          aspectRatio: '1 / 1'
         }}
       >
-        {loading && (
-          <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm flex items-center justify-center rounded-lg">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-          </div>
-        )}
         {board.map((value, index) => (
           <button
             key={index}
@@ -147,7 +212,15 @@ export default function GameBoard({ boardSize, difficulty }) {
             disabled={loading || winner !== null || value !== null}
             className={`
               game-cell
+              flex items-center justify-center
+              text-4xl font-bold
+              min-h-[40px]
+              rounded-md
+              transition-colors
               ${value ? 'text-primary' : 'text-transparent'}
+              ${winningCells?.includes(index) 
+                ? 'bg-accent-lighter' 
+                : 'bg-accent hover:bg-accent-darker'}
               ${loading || winner || value 
                 ? 'cursor-not-allowed opacity-75' 
                 : 'hover:bg-accent-darker'
@@ -159,18 +232,13 @@ export default function GameBoard({ boardSize, difficulty }) {
         ))}
       </div>
       
-      {(winner || isTie) && (
+      {winner && (
         <div className="mt-8 text-center animate-slide-up">
-          {winner && (
-            <p className="text-2xl font-bold">
-              Winner: {winner}
-            </p>
-          )}
-          {isTie && (
-            <p className="text-2xl font-bold">
-              It's a Tie!
-            </p>
-          )}
+          <p className="text-2xl font-bold">
+            {winner === 'X' ? 'You won!' : 
+             winner === 'O' ? 'AI won!' : 
+             "It's a Tie!"}
+          </p>
         </div>
       )}
     </div>
