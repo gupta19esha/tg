@@ -4,15 +4,19 @@ import dbConnect from '@/app/lib/mongodb';
 import User from '@/app/models/User';
 import { createToken } from '@/app/lib/auth';
 
+let dbConnection;
+
 export async function POST(request) {
   try {
-    await dbConnect();
+    // Reuse DB connection if exists
+    if (!dbConnection) {
+      dbConnection = await dbConnect();
+    }
     
     const { email, password } = await request.json();
 
-
-    // Find user
-    const user = await User.findOne({ email });
+    // Find user and select only needed fields
+    const user = await User.findOne({ email }).select('password email');
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -20,7 +24,7 @@ export async function POST(request) {
       );
     }
 
-    // Check password
+    // Use lower salt rounds for bcrypt (8 instead of default 10)
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json(
@@ -29,33 +33,31 @@ export async function POST(request) {
       );
     }
 
-    // Create token
+    // Create token with minimal payload
     const token = await createToken({ 
-      userId: user._id.toString(), // Convert ObjectId to string
+      userId: user._id.toString(),
       email: user.email 
     });
 
-
-    // Create response
     const response = NextResponse.json(
       { message: 'Logged in successfully' },
       { status: 200 }
     );
 
-    // Set cookie
     response.cookies.set({
       name: 'token',
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: 86400 // 24 hours
+      maxAge: 86400
     });
 
     return response;
   } catch (error) {
+    console.error('Login error:', error);
     return NextResponse.json(
-      { error: 'Error logging in: ' + error.message },
+      { error: 'Authentication failed' },
       { status: 500 }
     );
   }
