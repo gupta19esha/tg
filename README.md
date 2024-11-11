@@ -1,6 +1,6 @@
 # **TicTacToeGPT**
 
-TicTacToeGPT is an innovative take on the classic game of Tic-Tac-Toe, powered by artificial intelligence. Play against a smart AI opponent that learns from your moves and provides an engaging gaming experience. With features like difficulty levels, game analytics, and multiplayer options, Tic-Tac-ToeGPT offers a modern twist to this timeless game. Built with Next.js and OpenAI's GPT-4, this app provides an intelligent and adaptive gaming experience.
+TicTacToeGPT is an innovative take on the classic game of Tic-Tac-Toe, powered by AI. Play against a smart AI opponent that learns from your moves and provides an engaging gaming experience. With features like difficulty levels, customizable board and Smart AI, TicTacToeGPT offers a modern twist to this timeless game. Built with Next.js and OpenAI's GPT-4, this app provides an intelligent and adaptive gaming experience.
 
 ## Table of Contents
 
@@ -27,6 +27,7 @@ Live demo - [TicTacToeGPT](https://tg-woad.vercel.app/)
 ## Features
 
 - Multiple difficulty levels (Easy, Medium, Hard)
+- Customizable Board Sizes ( 3x3, 4x4 and 5x5)
 - AI-powered opponent using GPT-4
 - User authentication and profiles
 
@@ -35,8 +36,6 @@ Live demo - [TicTacToeGPT](https://tg-woad.vercel.app/)
 - Next.js
 - Database: MongoDB
 - AI Integration: OpenAI's GPT-4
-- State Management: Redux Toolkit
-- Real-time features: Socket.io
 - Authentication: JSON Web Tokens (JWT)
 
 ## Getting Started
@@ -76,7 +75,6 @@ NEXT_PUBLIC_API_URL=http://localhost:3000/api
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 OPENAI_API_KEY=your_openai_api_key
-SOCKET_SERVER=your_socket_server_url
 ```
 
 **5. Run the development server:**
@@ -87,22 +85,28 @@ npm run dev
 
 **6. Open your browser and navigate to `http://localhost:3000`**
 
-You should now see the AI-powered Tic-Tac-ToeGPT application running with Next.js.
+You should now see the AI-powered TicTacToeGPT application running with Next.js.
 
 ## Screenshots
 
-
+![image](https://github.com/user-attachments/assets/2797ddbf-9326-4e2c-a544-ab6a669ece1a)![image](https://github.com/user-attachments/assets/d2276c6c-cfa8-4194-b083-ad36e9e76b07)
 
 ## How to use the application
 
 1. Register for a new account or log in
 2. Select difficulty level playing against AI
-3. 
+3. Pick a board size (3x3, 4x4, or 5x5) to customize the game experience
+4. Begin the game against the AI
+5. At any time, reset the game to start over
 
 ## Use cases and further enhancements
 
-1. Implement an AI that learns from player patterns to provide more challenging gameplay
-2. 
+1. Users can enjoy a quick, smart, and adaptive Tic-Tac-Toe game with a challenging AI opponent.
+2. With difficulty levels and adaptive AI, TicTacToeGPT allows players to improve their strategic thinking over time.
+3. Developers can explore the integration of AI with a classic game.
+4. Introduce a leaderboard system and achievements to increase engagement and encourage competitive play.
+5. Add options for users to select different themes and sound effects, making the game more personalized.
+6. Provide players with game statistics, such as win rates per difficulty level and insights into gameplay patterns.
 
 ## Contributing
 
