@@ -120,7 +120,7 @@ We welcome contributions! Here's how you can help make Tic-Tac-ToeGPT even bette
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](https://github.com/0xmetaschool/tic-tac-toe-gpt/blob/main/LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](public/LICENSE) file for details.
 
 ## Acknowledgments
 
